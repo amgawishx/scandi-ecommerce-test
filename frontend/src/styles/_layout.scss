@@ -1,0 +1,70 @@
+@use 'variables' as *;
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+}
+
+.navbar {
+  background-color: $white;
+  box-shadow: $box-shadow;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: $spacing-md 0;
+
+  .navbar-content {
+    @extend .container;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: $primary-color;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: $spacing-md;
+  }
+
+  .cart-button {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: $spacing-sm;
+    border-radius: $border-radius;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: $background-color;
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: $primary-color;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.main-content {
+  @extend .container;
+  padding-top: 80px; // Account for fixed navbar
+} 

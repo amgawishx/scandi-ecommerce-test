@@ -1,0 +1,118 @@
+@use 'variables' as *;
+@use 'sass:color';
+
+.navbar {
+  background-color: $white;
+  padding: $spacing-md $spacing-lg;
+  box-shadow: $box-shadow;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: $max-width;
+  margin: 0 auto;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.navbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: $primary-color;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: color.adjust($primary-color, $lightness: -10%);
+  }
+}
+
+.category-button {
+  position: relative;
+  padding: $spacing-sm $spacing-md;
+  border: none;
+  background: none;
+  color: $text-color;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.1s ease;
+  font-size: 1rem;
+
+  &:hover {
+    color: $primary-color;
+  }
+
+  &.active {
+    color: $primary-color;
+    font-weight: 600;
+    transform: translateY(2px);
+    box-shadow: inset 0 -2px 0 0 $primary-color;
+    transition: color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 0 0 $primary-color;
+    display: inline-block;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.cart-button {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: $spacing-sm;
+  color: $text-color;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $primary-color;
+  }
+
+  .cart-icon {
+    font-size: 1.5rem;
+  }
+
+  .cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: $primary-color;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+.cart-container {
+  position: relative;
+} 

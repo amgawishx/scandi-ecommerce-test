@@ -1,0 +1,263 @@
+@use 'sass:color';
+@use 'variables' as *;
+
+.cart-container {
+  position: relative;
+}
+
+.cart-button {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: $spacing-sm;
+  color: $text-color;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $primary-color;
+  }
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: $primary-color;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.cart-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 325px;
+  background: white;
+  box-shadow: 0px 4px 35px rgba(168, 172, 176, 0.19);
+  padding: 16px;
+  z-index: 1000;
+}
+
+.cart-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h3 {
+    font-weight: 700;
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .cart-item-count {
+    font-weight: 500;
+    font-size: 14px;
+    color: #1D1F22;
+  }
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 24px 0;
+  color: #8D8F9A;
+}
+
+.cart-items {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.cart-item {
+  display: flex;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #E5E5E5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .cart-item-image {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .cart-item-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cart-item-name {
+    font-weight: 300;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .cart-item-price {
+    font-weight: 500;
+    font-size: 16px;
+    margin: 4px 0 8px;
+  }
+
+  .cart-item-attribute {
+    font-size: 14px;
+    margin: 4px 0;
+
+    .attribute-label {
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .attribute-value {
+      margin-left: 4px;
+    }
+  }
+
+  .quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .quantity-button {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #1D1F22;
+      background: white;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #1D1F22;
+        color: white;
+      }
+    }
+
+    .quantity {
+      font-weight: 500;
+      min-width: 24px;
+      text-align: center;
+    }
+  }
+}
+
+.cart-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #E5E5E5;
+
+  .cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+}
+
+.cart-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 400px;
+  background-color: $white;
+  box-shadow: $box-shadow;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+
+  .cart-header {
+    padding: $spacing-md;
+    border-bottom: 1px solid $border-color;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+      margin: 0;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: $text-color-light;
+    }
+  }
+
+  .cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: $spacing-md;
+  }
+
+  .cart-footer {
+    padding: $spacing-md;
+    border-top: 1px solid $border-color;
+
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: $spacing-md;
+      font-weight: bold;
+    }
+
+    .place-order-button {
+      width: 100%;
+      padding: $spacing-sm;
+      background-color: $primary-color;
+      color: white;
+      border: none;
+      border-radius: $border-radius;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: color.adjust($primary-color, $lightness: -10%);
+      }
+
+      &:disabled {
+        background-color: $border-color;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.cart-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+} 
