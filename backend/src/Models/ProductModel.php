@@ -58,24 +58,45 @@ class ProductModel extends DataModel
         foreach ($products as &$product) {
             $product = $product->toArray();
         }
-        // echo var_export($products, true);
-        // die();
         return $products;
     }
 
     public function getOne($id)
     {
-        $this->queryBuilder = new QueryBuilder();
+        $this->queryBuilder->clearSQL();
         $this->addToQuery($this->queryBuilder);
         GalleryModel::addToQuery($this->queryBuilder);
         PriceModel::addToQuery($this->queryBuilder);
         AttributeValueModel::addToQuery($this->queryBuilder);
         $this->queryBuilder->addWhere(condition: "p.id = '$id'");
         $this->queryBuilder->toSQL();
-        $result = $this->queryBuilder->runSQL();
-        return isset($result[0]) ? new self($result[0]) : null;
-    }
+        $results = $this->queryBuilder->runSQL();
+    
+        if (empty($results)) {
+            return null;
+        }
+    
+        $product = new self($results[0]);
+        $product->price = (new PriceModel($results[0]))->toArray();
+        $product->attributes = [];
+        $product->galleries = [];
 
+        foreach ($results as $row) {
+            if (!empty($row['gallery_id'])) {
+                $gallery = new GalleryModel($row);
+                $product->galleries[$row['gallery_id']] = $gallery->toArray();
+            }
+    
+            if (!empty($row['attribute_value_id'])) {
+                $attribute = new AttributeValueModel($row);
+                $product->attributes[$row['attribute_value_id']] = [
+                    'attributeValue' => $attribute->toArray()
+                ];
+            }
+        }
+        return $product->toArray();
+    }
+    
     public function toArray(): array
     {
         return [
