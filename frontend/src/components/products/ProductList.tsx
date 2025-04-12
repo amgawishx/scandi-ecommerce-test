@@ -56,33 +56,42 @@ export const ProductList: React.FC<ProductListProps> = ({
     const defaultPrice = product.prices[0];
     if (!defaultPrice) return;
 
-    const attributeMap = new Map<string, string>();
-
+    const attributeMap = new Map<string, { id: number; value: string }>();
     for (const attr of product.attributes) {
       const attrName = attr.attributeValue.attribute.name;
       if (!attributeMap.has(attrName)) {
-        attributeMap.set(attrName, attr.attributeValue.value);
+        attributeMap.set(attrName, {
+          id: attr.attributeValue.id,
+          value: attr.attributeValue.value,
+        });
       }
     }
-
-    const selectedAttributes: { [key: string]: string } = Object.fromEntries(attributeMap);
+    const selectedAttributes = Object.fromEntries(attributeMap);
 
     const existingItem = cartItems.find(item =>
       item.id === product.id &&
-      JSON.stringify(item.selectedAttributes) === JSON.stringify(selectedAttributes)
+      Object.keys(selectedAttributes).every(
+        key =>
+          item.selectedAttributes[key]?.id === selectedAttributes[key]?.id &&
+          item.selectedAttributes[key]?.value === selectedAttributes[key]?.value
+      )
     );
 
     if (existingItem) {
       const updatedItems = cartItems.map(item =>
         item.id === product.id &&
-          JSON.stringify(item.selectedAttributes) === JSON.stringify(selectedAttributes)
+          Object.keys(selectedAttributes).every(
+            key =>
+              item.selectedAttributes[key]?.id === selectedAttributes[key]?.id &&
+              item.selectedAttributes[key]?.value === selectedAttributes[key]?.value
+          )
           ? { ...item, quantity: item.quantity + 1 }
           : item
       );
       onUpdateCart(updatedItems);
     } else {
-      const availableAttributes: { [key: string]: string[] } = {};
 
+      const availableAttributes: { [key: string]: string[] } = {};
       for (const attr of product.attributes) {
         const name = attr.attributeValue.attribute.name;
         const value = attr.attributeValue.value;

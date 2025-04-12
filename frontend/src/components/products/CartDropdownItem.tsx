@@ -1,4 +1,3 @@
-// CartDropdownItem.tsx
 import React from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_PRODUCT } from '../../graphql/queries';
@@ -54,17 +53,20 @@ export const CartDropdownItem: React.FC<CartDropdownItemProps> = ({ item, onUpda
           <div key={name} className="cart-attribute-section">
             <h4 className="cart-attribute-name">{name}:</h4>
             <div className="cart-attribute-values">
-              {values.map(({ id, value, displayValue }: any) => (
-                <div
-                  key={id}
-                  className={`cart-attribute-button ${type === 'swatch' ? 'swatch' : ''} ${item.selectedAttributes[name] === value ? 'selected' : ''
-                    }`}
-                  style={type === 'swatch' ? { backgroundColor: value } : undefined}
-                  title={type === 'swatch' ? displayValue : undefined}
-                >
-                  {type === 'swatch' ? '' : displayValue}
-                </div>
-              ))}
+              {values.map(({ id, value, displayValue }: any) => {
+                const isSelected = item.selectedAttributes[name]?.value === value;
+
+                return (
+                  <div
+                    key={id}
+                    className={`cart-attribute-button ${type === 'swatch' ? 'swatch' : ''} ${isSelected ? 'selected' : ''}`}
+                    style={type === 'swatch' ? { backgroundColor: value } : undefined}
+                    title={type === 'swatch' ? displayValue : undefined}
+                  >
+                    {type === 'swatch' ? '' : displayValue}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}

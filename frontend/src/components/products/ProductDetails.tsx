@@ -11,7 +11,10 @@ interface ProductDetailsProps {
 }
 
 interface SelectedAttributes {
-  [key: string]: string;
+  [key: string]: {
+    id: number;
+    value: string;
+  };
 }
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({
@@ -58,10 +61,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
     return acc;
   }, {} as { [key: string]: { name: string; type: string; values: { id: number; value: string; displayValue: string; }[] } });
 
-  const handleAttributeSelect = (attributeName: string, value: string) => {
+  const handleAttributeSelect = (attributeName: string, value: string, id: number) => {
     setSelectedAttributes(prev => ({
       ...prev,
-      [attributeName]: value
+      [attributeName]: {id, value}
     }));
   };
 
@@ -120,12 +123,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
       <h3 className="attribute-name">{name}:</h3>
       <div className="attribute-values">
         {values.map(({ id, value, displayValue }) => {
-          const isSelected = selectedAttributes[name] === value;
+          const isSelected = selectedAttributes[name]?.value === value;
           return (
             <button
               key={id}
               className={`attribute-button ${type === 'swatch' ? 'swatch' : ''} ${isSelected ? 'selected' : ''}`}
-              onClick={() => handleAttributeSelect(name, value)}
+              onClick={() => handleAttributeSelect(name, value, id)}
               style={type === 'swatch' ? { backgroundColor: value } : undefined}
               title={type === 'swatch' ? displayValue : undefined}
             >

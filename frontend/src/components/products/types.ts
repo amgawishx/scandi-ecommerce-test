@@ -34,7 +34,10 @@ export interface CartItem {
   quantity: number;
   image: string;
   selectedAttributes: {
-    [key: string]: string;
+    [key: string]: {
+      id: number;
+      value: string;
+    };
   };
   availableAttributes?: {
     [key: string]: string[];

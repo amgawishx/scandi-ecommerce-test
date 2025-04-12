@@ -3,7 +3,6 @@
 namespace MvpMarket\Controller;
 
 use GraphQL\GraphQL as GraphQLBase;
-use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
@@ -30,31 +29,21 @@ class GraphQL
 
         ini_set('display_errors', '1');
         error_reporting(E_ALL);
-        
+
         try {
-
-            $orderItemInput = Type::listOf(new InputObjectType([
-                'name' => 'OrderItemInput',
-                'fields' => [
-                    'product_id' => Type::nonNull(Type::string()),
-                    'quantity' => Type::nonNull(Type::int()),
-                    'selectedAttributes' => Type::listOf(Type::string()),
-                ],
-            ]));
-
             $queryType = new ObjectType([
                 'name' => 'Query',
                 'fields' => [
                     'products' => [
                         'type' => Type::listOf(TypesRegistry::product()),
-                        'resolve' => fn() => (new ProductModel()) -> getAll(),
+                        'resolve' => fn() => (new ProductModel())->getAll(),
                     ],
                     'product' => [
                         'type' => TypesRegistry::product(),
                         'args' => [
                             'id' => Type::nonNull(Type::string()),
                         ],
-                        'resolve' => fn($root, array $args) => (new ProductModel()) -> getOne($args['id']),
+                        'resolve' => fn($root, array $args) => (new ProductModel())->getOne($args['id']),
                     ],
                     'categories' => [
                         'type' => Type::listOf(TypesRegistry::category()),
@@ -69,9 +58,9 @@ class GraphQL
                     'placeOrder' => [
                         'type' => Type::boolean(),
                         'args' => [
-                            'items' => ['type' => $orderItemInput],
+                            'items' => Type::nonNull(Type::listOf(TypesRegistry::order())), // ✅ Using reusable Order InputObjectType
                         ],
-                        'resolve' => fn($root, array $args) => OrderModel::placeOrder($args['items']),
+                        'resolve' => fn($root, array $args) => (new OrderModel())->placeOrder($args['items']),
                     ],
                 ],
             ]);

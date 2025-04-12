@@ -2,6 +2,8 @@
 
 namespace MvpMarket\GraphQL\Types;
 
+use MvpMarket\Models\OrderModel;
+
 class TypesRegistry
 {
     private static ?Product $product = null;
@@ -12,9 +14,9 @@ class TypesRegistry
     private static ?Order $order = null;
     private static ?OrderAttributeValue $orderAttributeValue = null;
     private static ?Category $category = null;
-
     private static ?Attribute $attribute = null;
 
+    private static ?OrderModel $orderModel = null;
 
     public static function product(): Product
     {
@@ -61,4 +63,8 @@ class TypesRegistry
         return self::$attribute ??= new Attribute();
     }
 
+    public static function orderModel(): OrderModel
+    {
+        return self::$orderModel ??= new OrderModel();
+    }
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import { CartItem } from './types';
 import { CartDropdownItem } from './CartDropdownItem';
-import { client, PLACE_ORDER } from '../../graphql/queries'
+import { client, PLACE_ORDER } from '../../graphql/queries';
 
 interface CartDropdownProps {
   cartItems: CartItem[];
@@ -17,14 +17,14 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
       quantity: item.quantity,
       image: item.image,
       selectedAttributes: Object.entries(item.selectedAttributes).map(
-        ([name, value]) => ({ name, value })
+        ([name, { id, value }]) => ({ name, id, value })
       ),
-    }));  
+    }));
 
     try {
       const { data } = await client.mutate({
         mutation: PLACE_ORDER,
-        variables: { items: orderItems }
+        variables: { items: orderItems },
       });
 
       console.log('Order placed:', data.placeOrder);
@@ -37,8 +37,7 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
 
   const handleItemUpdate = (updatedItem: CartItem | null, removeId?: string) => {
     if (updatedItem === null) {
-      cartItems = cartItems.filter(i => i.id !== removeId);
-      onUpdateCart(cartItems);
+      onUpdateCart(cartItems.filter(i => i.id !== removeId));
     } else {
       onUpdateCart(
         cartItems.map(i => (i.id === updatedItem.id ? updatedItem : i))
@@ -55,17 +54,19 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
     <div className="cart-dropdown">
       <div className="cart-dropdown-header">
         <h3>My Bag</h3>
-        <span className="cart-item-count">{cartItems.length} {cartItems.length > 1 ? "Items" : "Item"}</span>
+        <span className="cart-item-count">
+          {cartItems.length} {cartItems.length > 1 ? 'Items' : 'Item'}
+        </span>
       </div>
 
       {cartItems.length === 0 ? (
-        <div className='cart-footer'>
+        <div className="cart-footer">
           <div className="empty-cart">Your cart is empty</div>
           <div className="cart-total">
             <span>Total: </span>
             <span>$0</span>
           </div>
-          <button onClick={() => onUpdateCart([])} className="checkout-button" disabled={true}>
+          <button onClick={() => onUpdateCart([])} className="checkout-button" disabled>
             Checkout
           </button>
         </div>
@@ -91,7 +92,7 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
                   await placeOrder(cartItems);
                   onUpdateCart([]);
                 } catch (error) {
-                  console.error("Failed to place order:", error);
+                  console.error('Failed to place order:', error);
                 }
               }}
               className="checkout-button"

@@ -52,27 +52,21 @@ class QueryBuilder extends Database
         try {
             assert($this->sql !== "");
             $connection = $this->getConnection();
-            $connection->beginTransaction();
             $queryType = strtoupper(strtok(trim($this->sql), " "));
             $stmt = $connection->prepare($this->sql);
             $success = $stmt->execute();
             if ($queryType === 'SELECT') {
                 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                $connection->commit();
                 return $results;
             } else {
-                $connection->commit();
                 return $success;
             }
         } catch (PDOException $e) {
-            if (!empty($connection) && $connection->inTransaction()) {
-                $connection->rollBack();
-            }
             echo "Error: " . $e->getMessage();
             return $queryType === 'SELECT' ? [] : false;
         }
     }
-    
+
     public function clearSQL(): void
     {
         $this->sql = "";
@@ -87,8 +81,27 @@ class QueryBuilder extends Database
         $this->insertData = $data;
 
         $columns = implode(", ", array_keys($data));
-        $placeholders = implode(", ", array: array_map(fn($k) => ":$k", array_keys($data)));
 
-        $this->sql = "INSERT INTO $this->from ($columns) VALUES ($placeholders)";
+        $values = implode(", ", array_map(function ($value) {
+            if (is_array($value)) {
+                return "'" . addslashes(json_encode($value)) . "'";
+            }
+
+            if (is_string($value)) {
+                return "'" . addslashes($value) . "'";
+            }
+
+            if (is_null($value)) {
+                return "NULL";
+            }
+
+            if (is_bool($value)) {
+                return $value ? '1' : '0';
+            }
+
+            return $value;
+        }, array_values($data)));
+
+        $this->sql = "INSERT INTO {$this->from} ({$columns}) VALUES ({$values})";
     }
 }

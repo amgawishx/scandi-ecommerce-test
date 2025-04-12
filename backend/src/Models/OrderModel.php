@@ -1,48 +1,99 @@
 <?php
 
-declare(strict_types= 1);
+declare(strict_types=1);
 
 namespace MvpMarket\Models;
 
 use MvpMarket\utility\Validator;
-use InvalidArgumentException;
-use MvpMarket\Database\Query;
 
-class OrderModel implements Validator
+
+class OrderModel extends DataModel implements Validator
 {
-    private array $items;
+    protected string $productId;
+    protected string $name;
+    protected float $price;
+    protected int $quantity;
+    protected string $image;
+    protected array $selectedAttributes = [];
 
-    public function __construct(array $items)
+    protected array $items;
+
+    public function __construct(array $data = [])
     {
-        $this->items = $items;
+        parent::__construct(data: $data);
+        $this->tableName = 'orders';
+        $this->queryBuilder->setFrom($this->tableName);
     }
 
-    public static function placeOrder(array $items): bool
+    public function toArray(): array
     {
-        (new self($items))->validate();
-
-        $query = new Query();
-        return $query->placeOrder($items);
+        return [
+            'productId' => $this->productId,
+            'quantity' => $this->quantity,
+            'price' => $this->price,
+            'image' => $this->image,
+            'name' => $this->name,
+            'selectedAttributes' => $this->selectedAttributes,
+        ];
     }
 
-    public function validate(): void
+    public function placeOrder(array $items = [])
     {
-        if (empty($this->items)) {
-            throw new InvalidArgumentException("Order must contain at least one item.");
+        foreach ($items as $item) {
+            assert ((new self($item))->validate());
+            $this->queryBuilder->clearSQL();
+            $this->queryBuilder->insertData([
+                'product_id' => $item['productId'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'image' => $item['image'],
+                'name' => $item['name'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+            $this->queryBuilder->runSQL();
+            $orderId = $this->queryBuilder->getConnection()->lastInsertId();
+            if (!empty($item['selectedAttributes']) && is_array($item['selectedAttributes'])) {
+                foreach ($item['selectedAttributes'] as $attribute) {
+                    $this->queryBuilder->setFrom("order_attribute_values");
+                    $this->queryBuilder->insertData([
+                        'order_id' => $orderId,
+                        'attribute_value_id' => $attribute['id']
+                    ]);
+                    $this->queryBuilder->runSQL();
+                }
+            }
         }
-
-        foreach ($this->items as $index => $item) {
-            if (!isset($item['productId']) || !is_string($item['productId'])) {
-                throw new InvalidArgumentException("Item #$index: 'productId' is required and must be a string.");
-            }
-
-            if (!isset($item['quantity']) || !is_int($item['quantity']) || $item['quantity'] <= 0) {
-                throw new InvalidArgumentException("Item #$index: 'quantity' must be a positive integer.");
-            }
-
-            if (isset($item['selectedAttributes']) && !is_array($item['selectedAttributes'])) {
-                throw new InvalidArgumentException("Item #$index: 'selectedAttributes' must be an array if provided.");
-            }
-        }
     }
+
+    public function validate(): array|bool
+{
+    $errors = [];
+
+    if (empty($this->productId) || !is_string($this->productId)) {
+        $errors[] = "Invalid or missing product ID.";
+    }
+
+    if (empty($this->name) || !is_string($this->name)) {
+        $errors[] = "Invalid or missing product name.";
+    }
+
+    if (!isset($this->price) || !is_numeric($this->price) || $this->price < 0) {
+        $errors[] = "Invalid or missing price.";
+    }
+
+    if (!isset($this->quantity) || !is_int($this->quantity) || $this->quantity <= 0) {
+        $errors[] = "Invalid or missing quantity.";
+    }
+
+    if (empty($this->image) || !filter_var($this->image, FILTER_VALIDATE_URL)) {
+        $errors[] = "Invalid or missing image URL.";
+    }
+
+    if (!is_array($this->selectedAttributes)) {
+        $errors[] = "Selected attributes must be an array.";
+    }
+
+    return empty($errors) ? true : $errors;
+}
+
 }
