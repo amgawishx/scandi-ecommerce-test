@@ -40,7 +40,7 @@ class OrderModel extends DataModel implements Validator
     public function placeOrder(array $items = [])
     {
         foreach ($items as $item) {
-            assert ((new self($item))->validate());
+            assert((new self($item))->validate());
             $this->queryBuilder->clearSQL();
             $this->queryBuilder->insertData([
                 'product_id' => $item['productId'],
@@ -66,34 +66,33 @@ class OrderModel extends DataModel implements Validator
     }
 
     public function validate(): array|bool
-{
-    $errors = [];
+    {
+        $errors = [];
 
-    if (empty($this->productId) || !is_string($this->productId)) {
-        $errors[] = "Invalid or missing product ID.";
+        if (empty($this->productId) || !is_string($this->productId)) {
+            $errors[] = "Invalid or missing product ID.";
+        }
+
+        if (empty($this->name) || !is_string($this->name)) {
+            $errors[] = "Invalid or missing product name.";
+        }
+
+        if (!isset($this->price) || !is_numeric($this->price) || $this->price < 0) {
+            $errors[] = "Invalid or missing price.";
+        }
+
+        if (!isset($this->quantity) || !is_int($this->quantity) || $this->quantity <= 0) {
+            $errors[] = "Invalid or missing quantity.";
+        }
+
+        if (empty($this->image) || !filter_var($this->image, FILTER_VALIDATE_URL)) {
+            $errors[] = "Invalid or missing image URL.";
+        }
+
+        if (!is_array($this->selectedAttributes)) {
+            $errors[] = "Selected attributes must be an array.";
+        }
+
+        return empty($errors) ? true : $errors;
     }
-
-    if (empty($this->name) || !is_string($this->name)) {
-        $errors[] = "Invalid or missing product name.";
-    }
-
-    if (!isset($this->price) || !is_numeric($this->price) || $this->price < 0) {
-        $errors[] = "Invalid or missing price.";
-    }
-
-    if (!isset($this->quantity) || !is_int($this->quantity) || $this->quantity <= 0) {
-        $errors[] = "Invalid or missing quantity.";
-    }
-
-    if (empty($this->image) || !filter_var($this->image, FILTER_VALIDATE_URL)) {
-        $errors[] = "Invalid or missing image URL.";
-    }
-
-    if (!is_array($this->selectedAttributes)) {
-        $errors[] = "Selected attributes must be an array.";
-    }
-
-    return empty($errors) ? true : $errors;
-}
-
 }
