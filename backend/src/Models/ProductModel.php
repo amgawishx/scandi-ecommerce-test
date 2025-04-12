@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace MvpMarket\Models;
 use MvpMarket\Database\QueryBuilder;
-use MvpMarket\GraphQL\Types\AttributeValue;
 class ProductModel extends DataModel
 {
     protected string $productId;
