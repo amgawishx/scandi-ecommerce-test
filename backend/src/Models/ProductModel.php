@@ -1,92 +1,100 @@
 <?php
+
+declare(strict_types=1);
+
+
 namespace MvpMarket\Models;
-use MvpMarket\Database\Query;
-use Illuminate\Support\Arr;
-
-class ProductModel
+use MvpMarket\Database\QueryBuilder;
+use MvpMarket\GraphQL\Types\AttributeValue;
+class ProductModel extends DataModel
 {
-    public static function getAll()
+    protected string $productId;
+    protected string $name;
+    protected array $price;
+    protected array $galleries = [];
+    protected string $description;
+    protected bool $inStock;
+    protected string $category;
+    protected string $brand;
+    protected array $attributes = [];
+    const SELECTS = ["p.id AS product_id", "p.name", "p.in_stock", "p.description", "p.category", "p.brand"];
+
+    public function __construct(array $data = [])
     {
-        $query = new Query();
-        $rows = $query->getAllProducts();
-    
-        $products = [];
-    
-        foreach ($rows as $row) {
-            $productId = $row['product_id'];
-    
-            if (!isset($products[$productId])) {
-                $products[$productId] = [
-                    'id' => $row['product_id'],
-                    'name' => $row['name'],
-                    'inStock' => (bool) $row['in_stock'],
-                    'description' => $row['description'],
-                    'category' => $row['category'],
-                    'brand' => $row['brand'],
-                    'prices' => [],
-                    'galleries' => [],
-                    'attributes' => [],
-                ];
-            }
-    
-            $priceId = $row['price_id'];
-            if ($priceId && !self::inArrayById($products[$productId]['prices'], $priceId)) {
-                $products[$productId]['prices'][] = [
-                    'id' => $priceId,
-                    'amount' => $row['amount'],
-                    'currencyLabel' => $row['currency_label'],
-                    'currencySymbol' => $row['currency_symbol'],
-                ];
-            }
-    
-            $galleryId = $row['gallery_id'];
-            if ($galleryId && !self::inArrayById($products[$productId]['galleries'], $galleryId)) {
-                $products[$productId]['galleries'][] = [
-                    'id' => $galleryId,
-                    'imageUrl' => $row['image_url'],
-                ];
-            }
-    
-            $attributeValueId = $row['attribute_value_id'];
-            if ($attributeValueId && !self::inArrayById($products[$productId]['attributes'], $attributeValueId, 'attributeValue')) {
-                $products[$productId]['attributes'][] = [
-                    'attributeValue' => [
-                        'id' => $attributeValueId,
-                        'value' => $row['value'],
-                        'displayValue' => $row['display_value'],
-                        'attribute' => [
-                            'id' => $row['attribute_id'],
-                            'name' => $row['attribute_name'],
-                            'type' => $row['attribute_type'],
-                        ],
-                    ],
-                ];
-            }
-        }
-    
-        return array_values($products);
-    }
-    
-    private static function inArrayById(array $array, $id, $nestedKey = null): bool
-    {
-        foreach ($array as $item) {
-            if ($nestedKey) {
-                if (isset($item[$nestedKey]['id']) && $item[$nestedKey]['id'] === $id) {
-                    return true;
-                }
-            } else {
-                if (isset($item['id']) && $item['id'] === $id) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    
-    public static function getOne($id)
-    {
-        $query = new Query();
-        return $query->getProductByID($id);
+        parent::__construct(data: $data);
+        $this->tableName = 'products p';
+        $this->queryBuilder->setFrom($this->tableName);
     }
 
+    public function getAll(): array
+    {
+        $this->queryBuilder->clearSQL();
+        $this->addToQuery($this->queryBuilder);
+        GalleryModel::addToQuery($this->queryBuilder);
+        PriceModel::addToQuery($this->queryBuilder);
+        AttributeValueModel::addToQuery($this->queryBuilder);
+        $this->queryBuilder->toSQL();
+        $results = $this->queryBuilder->runSQL();
+        $products = [];
+
+        foreach ($results as $row) {
+            $productId = $row['product_id'];
+
+            if (!isset($products[$productId])) {
+                $products[$productId] = new self($row);
+                $products[$productId]->price = (new PriceModel($row))->toArray();
+            }
+            if (!empty($row['gallery_id'])) {
+                $gallery = new GalleryModel($row);
+                $products[$productId]->galleries[$row['gallery_id']] = $gallery->toArray();
+            }
+            if (!empty($row['attribute_value_id'])) {
+                $attribute = new AttributeValueModel($row);
+                $products[$productId]->attributes[$row['attribute_value_id']] = [
+                    'attributeValue' => $attribute->toArray()
+                ];
+            }
+        }
+        foreach ($products as &$product) {
+            $product = $product->toArray();
+        }
+        // echo var_export($products, true);
+        // die();
+        return $products;
+    }
+
+    public function getOne($id)
+    {
+        $this->queryBuilder = new QueryBuilder();
+        $this->addToQuery($this->queryBuilder);
+        GalleryModel::addToQuery($this->queryBuilder);
+        PriceModel::addToQuery($this->queryBuilder);
+        AttributeValueModel::addToQuery($this->queryBuilder);
+        $this->queryBuilder->addWhere(condition: "p.id = '$id'");
+        $this->queryBuilder->toSQL();
+        $result = $this->queryBuilder->runSQL();
+        return isset($result[0]) ? new self($result[0]) : null;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->productId,
+            'name' => $this->name,
+            'prices' => [$this->price],
+            'description' => $this->description,
+            'galleries' => $this->galleries,
+            'inStock' => (bool) $this->inStock,
+            'category' => $this->category,
+            'brand' => $this->brand,
+            'attributes' => $this->attributes
+        ];
+    }
+
+    public static function addToQuery(QueryBuilder $qb)
+    {
+        foreach (self::SELECTS as $select) {
+            $qb->addSelect($select);
+        }
+    }
 }

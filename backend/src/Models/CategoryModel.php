@@ -1,13 +1,23 @@
 <?php
+
 namespace MvpMarket\Models;
-use MvpMarket\Database\Query;
 
-class CategoryModel
+class CategoryModel extends DataModel
 {
-    public static function getAll()
-    {
-        $query = new Query();
-        return $query->getCategories();
-    }
+    protected string $name = '';
 
+    public function __construct(array $data = [])
+    {
+        parent::__construct(data: $data);
+        $this->tableName = 'categories';
+        $this->queryBuilder->setFrom($this->tableName);
+    }
+    
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+        ];
+    }
 }

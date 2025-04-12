@@ -27,6 +27,9 @@ class GraphQL
             http_response_code(204);
             exit;
         }
+
+        ini_set('display_errors', '1');
+        error_reporting(E_ALL);
         
         try {
 
@@ -44,18 +47,18 @@ class GraphQL
                 'fields' => [
                     'products' => [
                         'type' => Type::listOf(TypesRegistry::product()),
-                        'resolve' => fn() => ProductModel::getAll(),
+                        'resolve' => fn() => (new ProductModel()) -> getAll(),
                     ],
                     'product' => [
                         'type' => TypesRegistry::product(),
                         'args' => [
                             'id' => Type::nonNull(Type::string()),
                         ],
-                        'resolve' => fn($root, array $args) => ProductModel::getOne($args['id']),
+                        'resolve' => fn($root, array $args) => (new ProductModel()) -> getOne($args['id']),
                     ],
                     'categories' => [
                         'type' => Type::listOf(TypesRegistry::category()),
-                        'resolve' => fn() => CategoryModel::getAll(),
+                        'resolve' => fn(): array => (new CategoryModel())->getAll(),
                     ],
                 ],
             ]);

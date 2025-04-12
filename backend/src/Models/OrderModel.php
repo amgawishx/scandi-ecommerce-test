@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types= 1);
+
 namespace MvpMarket\Models;
 
 use MvpMarket\utility\Validator;
@@ -14,7 +16,6 @@ class OrderModel implements Validator
     {
         $this->items = $items;
     }
-
 
     public static function placeOrder(array $items): bool
     {
