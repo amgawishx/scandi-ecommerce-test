@@ -131,7 +131,7 @@ export const ProductList: React.FC<ProductListProps> = ({
             const imageUrl = product.galleries[0]?.imageUrl;
 
             return (
-              <div key={product.id} className="product-card">
+              <div key={product.id} className="product-card" data-testid={`product-${product.name.replace(' ', '-').toLowerCase()}`}>
                 <div className="product-image-container" onClick={() => navigate(`/product/${product.id}`)}>
                   <img
                     src={imageUrl}

@@ -62,7 +62,7 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
       {cartItems.length === 0 ? (
         <div className="cart-footer">
           <div className="empty-cart">Your cart is empty</div>
-          <div className="cart-total">
+          <div className="cart-total" data-testid='cart-total'>
             <span>Total: </span>
             <span>$0</span>
           </div>
@@ -82,7 +82,7 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
             ))}
           </div>
           <div className="cart-footer">
-            <div className="cart-total">
+            <div className="cart-total" data-testid='cart-total'>
               <span>Total:</span>
               <span>${totalPrice.toFixed(2)}</span>
             </div>

@@ -50,7 +50,7 @@ export const CartDropdownItem: React.FC<CartDropdownItemProps> = ({ item, onUpda
         <h4 className="cart-item-name">{item.name}</h4>
 
         {Object.entries(groupedAttributes).map(([name, { type, values }]: any) => (
-          <div key={name} className="cart-attribute-section">
+          <div key={name} className="cart-attribute-section" data-testid={`cart-item-attribute-${name.replace(' ', '-').toLowerCase()}`}>
             <h4 className="cart-attribute-name">{name}:</h4>
             <div className="cart-attribute-values">
               {values.map(({ id, value, displayValue }: any) => {
@@ -60,6 +60,7 @@ export const CartDropdownItem: React.FC<CartDropdownItemProps> = ({ item, onUpda
                   <div
                     key={id}
                     className={`cart-attribute-button ${type === 'swatch' ? 'swatch' : ''} ${isSelected ? 'selected' : ''}`}
+                    data-testid={`cart-item-attribute-${name.replace(' ', '-').toLowerCase()}-${displayValue.replace(' ', '-').toLowerCase()}-${isSelected ? 'selected' : ''}`}
                     style={type === 'swatch' ? { backgroundColor: value } : undefined}
                     title={type === 'swatch' ? displayValue : undefined}
                   >
@@ -73,9 +74,9 @@ export const CartDropdownItem: React.FC<CartDropdownItemProps> = ({ item, onUpda
 
         <div className="cart-item-price">${item.price.toFixed(2)}</div>
         <div className="quantity-controls">
-          <button onClick={() => handleQuantityChange(-1)} className="quantity-button">-</button>
-          <span className="quantity">{item.quantity}</span>
-          <button onClick={() => handleQuantityChange(1)} className="quantity-button">+</button>
+          <button onClick={() => handleQuantityChange(-1)} className="quantity-button" data-testid='cart-item-amount-decrease'>-</button>
+          <span className="quantity" data-testid='cart-item-amount'>{item.quantity}</span>
+          <button onClick={() => handleQuantityChange(1)} className="quantity-button" data-testid='cart-item-amount-increase'>+</button>
         </div>
       </div>
     </div>

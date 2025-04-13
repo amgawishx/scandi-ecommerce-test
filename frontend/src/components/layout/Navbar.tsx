@@ -39,6 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               key={category.id}
               className={`category-button ${currentCategory === category.name ? 'active' : ''}`}
+              data-testid={currentCategory === category.name ? 'active-category-link' : 'category-link'}
               onClick={() => onCategoryChange(category.name)}
             >
               {category.name[0].toLocaleUpperCase() + category.name.slice(1)}

@@ -88,6 +88,6 @@ export const PLACE_ORDER = gql`
 `;
 
 export const client = new ApolloClient({
-  uri: 'http://localhost:8000/graphql',
+  uri: 'http://192.168.1.71:8000/graphql',
   cache: new InMemoryCache(),
 }); 

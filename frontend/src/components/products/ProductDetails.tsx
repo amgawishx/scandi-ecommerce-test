@@ -119,7 +119,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
     type: string,
     values: { id: number; value: string; displayValue: string }[]
   ) => (
-    <div key={name} className="attribute-section">
+    <div key={name} className="attribute-section" data-testid={`product-attribute-${name.replace(' ', '-').toLowerCase()}`}>
       <h3 className="attribute-name">{name}:</h3>
       <div className="attribute-values">
         {values.map(({ id, value, displayValue }) => {
@@ -147,7 +147,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
       <div className="product-details">
         <button className="back-button" onClick={() => navigate('/')}>← Back to Products</button>
         <div className="product-details-content">
-          <div className="product-gallery-wrapper">
+          <div className="product-gallery-wrapper" data-testid='product-gallery'>
             <div className="thumbnail-list">
               {product.galleries.map((gallery, index) => (
                 <img
@@ -189,11 +189,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <p>{defaultPrice.currencySymbol}{defaultPrice.amount.toFixed(2)}</p>
               </div>
             )}
-            <div className="product-description" dangerouslySetInnerHTML={{ __html: product.description }} />
+            <div className="product-description" dangerouslySetInnerHTML={{ __html: product.description }} data-testid='product-description' />
             <button
               className={`add-to-cart-button ${(!product.inStock || !hasAllAttributesSelected) ? 'out-of-stock' : 'in-stock'}`}
               onClick={() => product.inStock && hasAllAttributesSelected && handleAddToCart()}
               disabled={!product.inStock || !hasAllAttributesSelected}
+              data-testid='add-to-cart'
             >
               {product.inStock ? 'Add to Cart' : 'Out of Stock'}
             </button>
