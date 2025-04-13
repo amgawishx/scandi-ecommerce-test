@@ -36,14 +36,16 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="navbar-content">
         <div className="navbar-left">
           {categories.map((category: { id: string; name: string }) => (
-            <button
+            <Link
               key={category.id}
+              to={`/${category.name}`}
               className={`category-button ${currentCategory === category.name ? 'active' : ''}`}
               data-testid={currentCategory === category.name ? 'active-category-link' : 'category-link'}
               onClick={() => onCategoryChange(category.name)}
+              style={{ textDecoration: 'none' }}
             >
               {category.name[0].toLocaleUpperCase() + category.name.slice(1)}
-            </button>
+            </Link>
           ))}
         </div>
         <div className="navbar-center">
@@ -55,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="cart-container">
             <button
               data-testid='cart-btn'
-              className="cart-button" 
+              className="cart-button"
               onClick={() => setIsCartOpen(!isCartOpen)}
             >
               <FaShoppingCart className="cart-icon" />
