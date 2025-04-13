@@ -40,9 +40,11 @@ class OrderModel extends DataModel implements Validator
     public function placeOrder(array $items = [])
     {
         foreach ($items as $item) {
-            assert((new self($item))->validate());
-            $this->queryBuilder->clearSQL();
-            $this->queryBuilder->insertData([
+            $order = new self($item);
+            assert($order->validate());
+    
+            $order->queryBuilder->clearSQL();
+            $order->queryBuilder->insertData([
                 'product_id' => $item['productId'],
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
@@ -50,21 +52,23 @@ class OrderModel extends DataModel implements Validator
                 'name' => $item['name'],
                 'created_at' => date('Y-m-d H:i:s')
             ]);
-            $this->queryBuilder->runSQL();
-            $orderId = $this->queryBuilder->getConnection()->lastInsertId();
+            $order->queryBuilder->runSQL();
+    
+            $orderId = $order->queryBuilder->getConnection()->lastInsertId();
+    
             if (!empty($item['selectedAttributes']) && is_array($item['selectedAttributes'])) {
                 foreach ($item['selectedAttributes'] as $attribute) {
-                    $this->queryBuilder->setFrom("order_attribute_values");
-                    $this->queryBuilder->insertData([
+                    $order->queryBuilder->setFrom("order_attribute_values");
+                    $order->queryBuilder->insertData([
                         'order_id' => $orderId,
                         'attribute_value_id' => $attribute['id']
                     ]);
-                    $this->queryBuilder->runSQL();
+                    $order->queryBuilder->runSQL();
                 }
             }
         }
     }
-
+    
     public function validate(): array|bool
     {
         $errors = [];
