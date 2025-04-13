@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { GET_PRODUCT } from '../../graphql/queries';
 import { CartItem, Product } from './types';
+import parse from 'html-react-parser';
+
 
 interface ProductDetailsProps {
   onUpdateCart?: (items: CartItem[]) => void;
@@ -64,7 +66,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   const handleAttributeSelect = (attributeName: string, value: string, id: number) => {
     setSelectedAttributes(prev => ({
       ...prev,
-      [attributeName]: {id, value}
+      [attributeName]: { id, value }
     }));
   };
 
@@ -189,7 +191,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <p>{defaultPrice.currencySymbol}{defaultPrice.amount.toFixed(2)}</p>
               </div>
             )}
-            <div className="product-description" dangerouslySetInnerHTML={{ __html: product.description }} data-testid='product-description' />
+            <div className="product-description" data-testid="product-description">
+              {parse(product.description)}
+            </div>
             <button
               className={`add-to-cart-button ${(!product.inStock || !hasAllAttributesSelected) ? 'out-of-stock' : 'in-stock'}`}
               onClick={() => product.inStock && hasAllAttributesSelected && handleAddToCart()}
