@@ -32,78 +32,116 @@ class GraphQL
         error_reporting(E_ALL);
 
         try {
+            error_log("[DEBUG] Entering GraphQL::handle");
+
+            // Validate that all Types exist
+            error_log("[DEBUG] Validating TypesRegistry");
+            $productType = TypesRegistry::product();
+            $categoryType = TypesRegistry::category();
+            $orderInputType = TypesRegistry::order();
+
+            if (!$productType || !$categoryType || !$orderInputType) {
+                throw new RuntimeException("One or more GraphQL types are null (check TypesRegistry::product/category/order)");
+            }
+
             // Define GraphQL Query Type
+            error_log("[DEBUG] Defining Query type");
             $queryType = new ObjectType([
                 'name' => 'Query',
                 'fields' => [
                     'products' => [
-                        'type' => Type::listOf(TypesRegistry::product()),
-                        'resolve' => fn() => (new ProductModel())->getAll(),
+                        'type' => Type::listOf($productType),
+                        'resolve' => function () {
+                            error_log("[DEBUG] Resolving 'products'");
+                            return (new ProductModel())->getAll();
+                        },
                     ],
                     'product' => [
-                        'type' => TypesRegistry::product(),
+                        'type' => $productType,
                         'args' => [
                             'id' => Type::nonNull(Type::string()),
                         ],
-                        'resolve' => fn($root, array $args) => (new ProductModel())->getOne($args['id']),
+                        'resolve' => function ($root, array $args) {
+                            error_log("[DEBUG] Resolving 'product' with ID: " . $args['id']);
+                            return (new ProductModel())->getOne($args['id']);
+                        },
                     ],
                     'categories' => [
-                        'type' => Type::listOf(TypesRegistry::category()),
-                        'resolve' => fn(): array => (new CategoryModel())->getAll(),
+                        'type' => Type::listOf($categoryType),
+                        'resolve' => function (): array {
+                            error_log("[DEBUG] Resolving 'categories'");
+                            return (new CategoryModel())->getAll();
+                        },
                     ],
                 ],
             ]);
 
-            // Define GraphQL Mutation Type
+            // Define Mutation Type
+            error_log("[DEBUG] Defining Mutation type");
             $mutationType = new ObjectType([
                 'name' => 'Mutation',
                 'fields' => [
                     'placeOrder' => [
                         'type' => Type::boolean(),
                         'args' => [
-                            'items' => Type::nonNull(Type::listOf(TypesRegistry::order())),
+                            'items' => Type::nonNull(Type::listOf($orderInputType)),
                         ],
-                        'resolve' => fn($root, array $args) => (new OrderModel())->placeOrder($args['items']),
+                        'resolve' => function ($root, array $args) {
+                            error_log("[DEBUG] Resolving 'placeOrder'");
+                            return (new OrderModel())->placeOrder($args['items']);
+                        },
                     ],
                 ],
             ]);
 
-            // Build Schema
+            // Build schema
+            error_log("[DEBUG] Building Schema");
             $schema = new Schema(
                 (new SchemaConfig())
                     ->setQuery($queryType)
                     ->setMutation($mutationType)
             );
 
-            // Read Input
+            // Read and parse input
+            error_log("[DEBUG] Reading input from php://input");
             $rawInput = file_get_contents('php://input');
             if ($rawInput === false) {
-                throw new RuntimeException('Failed to read inputs');
+                throw new RuntimeException('Failed to read raw input from php://input');
             }
 
+            error_log("[DEBUG] Decoding JSON input: $rawInput");
             $input = json_decode($rawInput, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new RuntimeException('Invalid JSON input');
+                throw new RuntimeException('Invalid JSON: ' . json_last_error_msg());
             }
 
             $query = $input['query'] ?? null;
             $variableValues = $input['variables'] ?? null;
 
+            if (!$query) {
+                throw new RuntimeException('Missing query in input');
+            }
+
+            // Execute the GraphQL query
+            error_log("[DEBUG] Executing GraphQL query");
             $result = GraphQLBase::executeQuery($schema, $query, null, null, $variableValues);
             $output = $result->toArray();
+
+            error_log("[DEBUG] Query executed successfully");
+
         } catch (Throwable $e) {
             error_log("[GraphQL ERROR] " . $e->getMessage());
             $output = [
                 'errors' => [
                     [
                         'message' => 'Internal server error',
-                        'details' => $e->getMessage(), // Optional: remove in production
+                        'debug' => $e->getMessage(), // optional: remove in prod
                     ]
                 ],
             ];
         }
 
         header('Content-Type: application/json; charset=UTF-8');
-        echo json_encode($output);
+        echo json_encode($output, JSON_PRETTY_PRINT);
     }
 }
