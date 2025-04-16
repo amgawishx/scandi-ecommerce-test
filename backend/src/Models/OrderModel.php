@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MvpMarket\Models;
 
-use MvpMarket\utility\Validator;
+use MvpMarket\Utility\Validator;
 
 
 class OrderModel extends DataModel implements Validator

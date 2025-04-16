@@ -3,7 +3,7 @@
 namespace MvpMarket\Models;
 
 use MvpMarket\Database\QueryBuilder;
-use MvpMarket\utility\Record;
+use MvpMarket\Utility\Record;
 use ArrayAccess;
 use JsonSerializable;
 use Throwable;
