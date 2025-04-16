@@ -1,6 +1,6 @@
 FROM php:8.1-cli
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     unzip \
     git \
@@ -10,12 +10,19 @@ RUN apt-get update && apt-get install -y \
 # Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# Set working directory
 WORKDIR /app
 
-# Install PHP extensions (if you're connecting to MySQL)
+# Copy app files into image
+COPY . .
+
+# Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql
+
+# Install PHP dependencies
+RUN composer install
 
 EXPOSE 8000
 
-# Dump autoload then start PHP dev server
-ENTRYPOINT ["sh", "-c", "composter install && composer dump-autoload && php -S 0.0.0.0:8000 -t public"]
+# Start PHP built-in server after dumping autoload
+ENTRYPOINT ["sh", "-c", "composer dump-autoload && php -S 0.0.0.0:8000 -t public"]
