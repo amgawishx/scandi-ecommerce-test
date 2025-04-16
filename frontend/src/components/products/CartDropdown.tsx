@@ -1,14 +1,17 @@
-import React from 'react';
-import { CartItem } from './types';
-import { CartDropdownItem } from './CartDropdownItem';
-import { client, PLACE_ORDER } from '../../graphql/queries';
+import React from "react";
+import { CartItem } from "./types";
+import { CartDropdownItem } from "./CartDropdownItem";
+import { client, PLACE_ORDER } from "../../graphql/queries";
 
 interface CartDropdownProps {
   cartItems: CartItem[];
   onUpdateCart: (items: CartItem[]) => void;
 }
 
-export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateCart }) => {
+export const CartDropdown: React.FC<CartDropdownProps> = ({
+  cartItems,
+  onUpdateCart,
+}) => {
   const placeOrder = async (cartItems: CartItem[]) => {
     const orderItems = cartItems.map((item) => ({
       productId: item.id,
@@ -17,7 +20,7 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
       quantity: item.quantity,
       image: item.image,
       selectedAttributes: Object.entries(item.selectedAttributes).map(
-        ([name, { id, value }]) => ({ name, id, value })
+        ([name, { id, value }]) => ({ name, id, value }),
       ),
     }));
 
@@ -27,46 +30,53 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
         variables: { items: orderItems },
       });
 
-      console.log('Order placed:', data.placeOrder);
+      console.log("Order placed:", data.placeOrder);
       return data.placeOrder;
     } catch (error) {
-      console.error('Error placing order:', error);
+      console.error("Error placing order:", error);
       throw error;
     }
   };
 
-  const handleItemUpdate = (updatedItem: CartItem | null, removeId?: string) => {
+  const handleItemUpdate = (
+    updatedItem: CartItem | null,
+    removeId?: string,
+  ) => {
     if (updatedItem === null) {
-      onUpdateCart(cartItems.filter(i => i.id !== removeId));
+      onUpdateCart(cartItems.filter((i) => i.id !== removeId));
     } else {
       onUpdateCart(
-        cartItems.map(i => (i.id === updatedItem.id ? updatedItem : i))
+        cartItems.map((i) => (i.id === updatedItem.id ? updatedItem : i)),
       );
     }
   };
 
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
 
   return (
-    <div className="cart-dropdown">
+    <div className="cart-dropdown" data-testid="cart-overlay">
       <div className="cart-dropdown-header">
         <h3>My Bag</h3>
         <span className="cart-item-count">
-          {cartItems.length} {cartItems.length > 1 ? 'Items' : 'Item'}
+          {cartItems.length} {cartItems.length > 1 ? "Items" : "Item"}
         </span>
       </div>
 
       {cartItems.length === 0 ? (
         <div className="cart-footer">
           <div className="empty-cart">Your cart is empty</div>
-          <div className="cart-total" data-testid='cart-total'>
+          <div className="cart-total" data-testid="cart-total">
             <span>Total: </span>
             <span>$0</span>
           </div>
-          <button onClick={() => onUpdateCart([])} className="checkout-button" disabled>
+          <button
+            onClick={() => onUpdateCart([])}
+            className="checkout-button"
+            disabled
+          >
             Checkout
           </button>
         </div>
@@ -82,7 +92,7 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
             ))}
           </div>
           <div className="cart-footer">
-            <div className="cart-total" data-testid='cart-total'>
+            <div className="cart-total" data-testid="cart-total">
               <span>Total:</span>
               <span>${totalPrice.toFixed(2)}</span>
             </div>
@@ -92,7 +102,7 @@ export const CartDropdown: React.FC<CartDropdownProps> = ({ cartItems, onUpdateC
                   await placeOrder(cartItems);
                   onUpdateCart([]);
                 } catch (error) {
-                  console.error('Failed to place order:', error);
+                  console.error("Failed to place order:", error);
                 }
               }}
               className="checkout-button"

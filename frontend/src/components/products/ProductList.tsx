@@ -1,9 +1,9 @@
-import React from 'react';
-import { useQuery } from '@apollo/client';
-import { useNavigate } from 'react-router-dom';
-import { GET_PRODUCTS } from '../../graphql/queries';
-import { CartItem, ProductAttribute } from './types';
-import { FaShoppingCart } from 'react-icons/fa';
+import React from "react";
+import { useQuery } from "@apollo/client";
+import { useNavigate } from "react-router-dom";
+import { GET_PRODUCTS } from "../../graphql/queries";
+import { CartItem, ProductAttribute } from "./types";
+import { FaShoppingCart } from "react-icons/fa";
 
 interface Price {
   id: number;
@@ -32,14 +32,16 @@ interface ProductListProps {
   currentCategory: string;
   cartItems: CartItem[];
   onUpdateCart: (items: CartItem[]) => void;
-  cartStatus: boolean
+  cartController: (status: boolean) => void;
+  cartStatus: boolean;
 }
 
 export const ProductList: React.FC<ProductListProps> = ({
   currentCategory,
   cartItems,
   onUpdateCart,
-  cartStatus
+  cartStatus,
+  cartController = () => {},
 }) => {
   const navigate = useNavigate();
   const { loading, error, data } = useQuery(GET_PRODUCTS);
@@ -48,9 +50,12 @@ export const ProductList: React.FC<ProductListProps> = ({
   if (error) return <div>Error: {error.message}</div>;
 
   const products = data?.products || [];
-  const filteredProducts = currentCategory === 'all'
-    ? products
-    : products.filter((product: Product) => product.category === currentCategory);
+  const filteredProducts =
+    currentCategory === "all"
+      ? products
+      : products.filter(
+          (product: Product) => product.category === currentCategory,
+        );
 
   const handleAddToCart = (product: Product) => {
     const defaultPrice = product.prices[0];
@@ -68,29 +73,31 @@ export const ProductList: React.FC<ProductListProps> = ({
     }
     const selectedAttributes = Object.fromEntries(attributeMap);
 
-    const existingItem = cartItems.find(item =>
-      item.id === product.id &&
-      Object.keys(selectedAttributes).every(
-        key =>
-          item.selectedAttributes[key]?.id === selectedAttributes[key]?.id &&
-          item.selectedAttributes[key]?.value === selectedAttributes[key]?.value
-      )
+    const existingItem = cartItems.find(
+      (item) =>
+        item.id === product.id &&
+        Object.keys(selectedAttributes).every(
+          (key) =>
+            item.selectedAttributes[key]?.id === selectedAttributes[key]?.id &&
+            item.selectedAttributes[key]?.value ===
+              selectedAttributes[key]?.value,
+        ),
     );
 
     if (existingItem) {
-      const updatedItems = cartItems.map(item =>
+      const updatedItems = cartItems.map((item) =>
         item.id === product.id &&
-          Object.keys(selectedAttributes).every(
-            key =>
-              item.selectedAttributes[key]?.id === selectedAttributes[key]?.id &&
-              item.selectedAttributes[key]?.value === selectedAttributes[key]?.value
-          )
+        Object.keys(selectedAttributes).every(
+          (key) =>
+            item.selectedAttributes[key]?.id === selectedAttributes[key]?.id &&
+            item.selectedAttributes[key]?.value ===
+              selectedAttributes[key]?.value,
+        )
           ? { ...item, quantity: item.quantity + 1 }
-          : item
+          : item,
       );
       onUpdateCart(updatedItems);
     } else {
-
       const availableAttributes: { [key: string]: string[] } = {};
       for (const attr of product.attributes) {
         const name = attr.attributeValue.attribute.name;
@@ -111,12 +118,13 @@ export const ProductList: React.FC<ProductListProps> = ({
           name: product.name,
           price: defaultPrice.amount,
           quantity: 1,
-          image: product.galleries[0]?.imageUrl || '',
+          image: product.galleries[0]?.imageUrl || "",
           selectedAttributes,
           availableAttributes,
         },
       ]);
     }
+    cartController(true);
   };
 
   return (
@@ -124,15 +132,26 @@ export const ProductList: React.FC<ProductListProps> = ({
       {cartStatus && <div className="grey-out-overlay" />}
 
       <div className="product-list-content">
-        <h2>{currentCategory[0].toLocaleUpperCase() + currentCategory.slice(1) + ' Products'}</h2>
+        <h2>
+          {currentCategory[0].toLocaleUpperCase() +
+            currentCategory.slice(1) +
+            " Products"}
+        </h2>
         <div className="products-grid">
           {filteredProducts.map((product: Product) => {
             const defaultPrice = product.prices[0];
             const imageUrl = product.galleries[0]?.imageUrl;
 
             return (
-              <div key={product.id} className="product-card" data-testid={`product-${product.name.replace(' ', '-').toLowerCase()}`}>
-                <div className="product-image-container" onClick={() => navigate(`/product/${product.id}`)}>
+              <div
+                key={product.id}
+                className="product-card"
+                data-testid={`product-${product.name.replaceAll(" ", "-").toLowerCase()}`}
+              >
+                <div
+                  className="product-image-container"
+                  onClick={() => navigate(`/product/${product.id}`)}
+                >
                   <img
                     src={imageUrl}
                     alt={product.name}
@@ -157,7 +176,8 @@ export const ProductList: React.FC<ProductListProps> = ({
                   <h3 className="product-name">{product.name}</h3>
                   {defaultPrice && (
                     <p className="product-price">
-                      {defaultPrice.currencySymbol}{defaultPrice.amount.toFixed(2)}
+                      {defaultPrice.currencySymbol}
+                      {defaultPrice.amount.toFixed(2)}
                     </p>
                   )}
                 </div>
@@ -168,4 +188,4 @@ export const ProductList: React.FC<ProductListProps> = ({
       </div>
     </div>
   );
-}; 
+};

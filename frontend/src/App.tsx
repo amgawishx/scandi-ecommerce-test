@@ -65,6 +65,7 @@ const App: React.FC = () => {
                 cartItems={cartItems}
                 onUpdateCart={handleUpdateCart}
                 cartStatus={isCartOpen}
+                cartController={setIsCartOpen}
               />
             }
           />
@@ -75,6 +76,7 @@ const App: React.FC = () => {
                 cartItems={cartItems}
                 onUpdateCart={handleUpdateCart}
                 cartStatus={isCartOpen}
+                cartController={setIsCartOpen}
               />
             }
           />
