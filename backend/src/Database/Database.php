@@ -12,7 +12,7 @@ class Database
     private $DBNAME;
     private $DBUSER;
     private $DBPASSWORD;
-    private $dbc;
+    private ?PDO $dbc = null;
 
     public function __construct()
     {
@@ -20,9 +20,11 @@ class Database
         $this->DBNAME = getenv("DBNAME");
         $this->DBUSER = getenv("DBUSER");
         $this->DBPASSWORD = getenv("DBPASSWORD");
+
+        error_log("[Database] Initialized with DBHOST={$this->DBHOST}, DBNAME={$this->DBNAME}, DBUSER={$this->DBUSER}");
     }
 
-    private function connect()
+    private function connect(): void
     {
         try {
             $dsn = "mysql:host={$this->DBHOST};dbname={$this->DBNAME};charset=utf8mb4";
@@ -32,9 +34,12 @@ class Database
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ];
 
+            error_log("[Database] Attempting connection to $dsn");
             $this->dbc = new PDO($dsn, $this->DBUSER, $this->DBPASSWORD, $options);
+            error_log("[Database] Connection successful");
+
         } catch (PDOException $e) {
-            error_log("[DB ERROR] Connection failed: " . $e->getMessage());
+            error_log("[Database ERROR] PDOException: " . $e->getMessage());
             throw new RuntimeException("Unable to connect to the database.");
         }
     }
@@ -42,8 +47,12 @@ class Database
     public function getConnection(): PDO
     {
         if ($this->dbc === null) {
+            error_log("[Database] No existing connection. Connecting...");
             $this->connect();
+        } else {
+            error_log("[Database] Reusing existing connection.");
         }
+
         return $this->dbc;
     }
 }
