@@ -78,7 +78,7 @@ class GraphQL
             // Read Input
             $rawInput = file_get_contents('php://input');
             if ($rawInput === false) {
-                throw new RuntimeException('Failed to read input');
+                throw new RuntimeException('Failed to read inputs');
             }
 
             $input = json_decode($rawInput, true);
