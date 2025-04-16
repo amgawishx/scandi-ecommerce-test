@@ -18,6 +18,7 @@ class GraphQL
 {
     public static function handle()
     {
+        // CORS Headers
         header("Access-Control-Allow-Origin: *");
         header('Access-Control-Allow-Methods: POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type');
@@ -31,6 +32,7 @@ class GraphQL
         error_reporting(E_ALL);
 
         try {
+            // Define GraphQL Query Type
             $queryType = new ObjectType([
                 'name' => 'Query',
                 'fields' => [
@@ -52,40 +54,51 @@ class GraphQL
                 ],
             ]);
 
+            // Define GraphQL Mutation Type
             $mutationType = new ObjectType([
                 'name' => 'Mutation',
                 'fields' => [
                     'placeOrder' => [
                         'type' => Type::boolean(),
                         'args' => [
-                            'items' => Type::nonNull(Type::listOf(TypesRegistry::order())), // ✅ Using reusable Order InputObjectType
+                            'items' => Type::nonNull(Type::listOf(TypesRegistry::order())),
                         ],
                         'resolve' => fn($root, array $args) => (new OrderModel())->placeOrder($args['items']),
                     ],
                 ],
             ]);
 
+            // Build Schema
             $schema = new Schema(
                 (new SchemaConfig())
                     ->setQuery($queryType)
                     ->setMutation($mutationType)
             );
 
+            // Read Input
             $rawInput = file_get_contents('php://input');
             if ($rawInput === false) {
                 throw new RuntimeException('Failed to read input');
             }
 
             $input = json_decode($rawInput, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new RuntimeException('Invalid JSON input');
+            }
+
             $query = $input['query'] ?? null;
             $variableValues = $input['variables'] ?? null;
 
             $result = GraphQLBase::executeQuery($schema, $query, null, null, $variableValues);
             $output = $result->toArray();
         } catch (Throwable $e) {
+            error_log("[GraphQL ERROR] " . $e->getMessage());
             $output = [
-                'error' => [
-                    'message' => $e->getMessage(),
+                'errors' => [
+                    [
+                        'message' => 'Internal server error',
+                        'details' => $e->getMessage(), // Optional: remove in production
+                    ]
                 ],
             ];
         }
