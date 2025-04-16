@@ -7,6 +7,7 @@ namespace MvpMarket\Models;
 use MvpMarket\Database\QueryBuilder;
 use PDOException;
 use RuntimeException;
+use Throwable;
 
 class ProductModel extends DataModel
 {
@@ -24,19 +25,25 @@ class ProductModel extends DataModel
 
     public function __construct(array $data = [])
     {
-        parent::__construct(data: $data);
-        $this->tableName = 'products p';
-        $this->queryBuilder->setFrom($this->tableName);
+        error_log("[ProductModel] __construct() called with data: " . json_encode($data));
+    
+        try {
+            parent::__construct(data: $data);
+            $this->tableName = 'products p';
+            $this->queryBuilder->setFrom($this->tableName);
+            error_log("[ProductModel] Constructor complete for product ID: " . ($data['product_id'] ?? 'N/A'));
+        } catch (Throwable $e) {
+            error_log("[ProductModel ERROR] Failed to construct ProductModel: " . $e->getMessage());
+            throw new RuntimeException("Failed to initialize product model.");
+        }
     }
-
+    
     public function getAll(): array
     {
         error_log("[ProductModel] getAll() called");
 
         try {
             $this->queryBuilder->clearSQL();
-            error_log("[ProductModel] Cleared query builder");
-
             $this->addToQuery($this->queryBuilder);
             GalleryModel::addToQuery($this->queryBuilder);
             PriceModel::addToQuery($this->queryBuilder);
@@ -51,35 +58,61 @@ class ProductModel extends DataModel
             $products = [];
 
             foreach ($results as $row) {
-                $productId = $row['product_id'];
+                try {
+                    $productId = $row['product_id'];
 
-                if (!isset($products[$productId])) {
-                    $products[$productId] = new self($row);
-                    $products[$productId]->price = (new PriceModel($row))->toArray();
-                }
+                    if (!isset($products[$productId])) {
+                        $products[$productId] = new self($row);
 
-                if (!empty($row['gallery_id'])) {
-                    $gallery = new GalleryModel($row);
-                    $products[$productId]->galleries[$row['gallery_id']] = $gallery->toArray();
-                }
+                        try {
+                            $products[$productId]->price = (new PriceModel($row))->toArray();
+                        } catch (Throwable $e) {
+                            error_log("[ProductModel ERROR] Failed to map PriceModel for product $productId: " . $e->getMessage());
+                            throw new RuntimeException("Error mapping price for product $productId.");
+                        }
+                    }
 
-                if (!empty($row['attribute_value_id'])) {
-                    $attribute = new AttributeValueModel($row);
-                    $products[$productId]->attributes[$row['attribute_value_id']] = [
-                        'attributeValue' => $attribute->toArray()
-                    ];
+                    if (!empty($row['gallery_id'])) {
+                        try {
+                            $gallery = new GalleryModel($row);
+                            $products[$productId]->galleries[$row['gallery_id']] = $gallery->toArray();
+                        } catch (Throwable $e) {
+                            error_log("[ProductModel ERROR] Failed to map GalleryModel for product $productId: " . $e->getMessage());
+                            throw new RuntimeException("Error mapping gallery for product $productId.");
+                        }
+                    }
+
+                    if (!empty($row['attribute_value_id'])) {
+                        try {
+                            $attribute = new AttributeValueModel($row);
+                            $products[$productId]->attributes[$row['attribute_value_id']] = [
+                                'attributeValue' => $attribute->toArray()
+                            ];
+                        } catch (Throwable $e) {
+                            error_log("[ProductModel ERROR] Failed to map AttributeValueModel for product $productId: " . $e->getMessage());
+                            throw new RuntimeException("Error mapping attribute for product $productId.");
+                        }
+                    }
+                } catch (Throwable $e) {
+                    error_log("[ProductModel ERROR] Error building product object: " . $e->getMessage());
                 }
             }
 
             foreach ($products as &$product) {
-                $product = $product->toArray();
+                try {
+                    $product = $product->toArray();
+                } catch (Throwable $e) {
+                    error_log("[ProductModel ERROR] toArray failed for product: " . $e->getMessage());
+                }
             }
 
             return $products;
-
         } catch (PDOException $e) {
-            error_log("[ProductModel ERROR] getAll failed: " . $e->getMessage());
-            throw new RuntimeException("Unable to fetch products.");
+            error_log("[ProductModel ERROR] DB failure in getAll: " . $e->getMessage());
+            throw new RuntimeException("Unable to fetch products from the database.");
+        } catch (Throwable $e) {
+            error_log("[ProductModel ERROR] Unexpected error in getAll: " . $e->getMessage());
+            throw new RuntimeException("Unexpected error occurred while fetching products.");
         }
     }
 
@@ -105,30 +138,45 @@ class ProductModel extends DataModel
                 return null;
             }
 
-            $product = new self($results[0]);
-            $product->price = (new PriceModel($results[0]))->toArray();
-            $product->attributes = [];
-            $product->galleries = [];
+            try {
+                $product = new self($results[0]);
+                $product->price = (new PriceModel($results[0]))->toArray();
+                $product->attributes = [];
+                $product->galleries = [];
 
-            foreach ($results as $row) {
-                if (!empty($row['gallery_id'])) {
-                    $gallery = new GalleryModel($row);
-                    $product->galleries[$row['gallery_id']] = $gallery->toArray();
+                foreach ($results as $row) {
+                    if (!empty($row['gallery_id'])) {
+                        try {
+                            $gallery = new GalleryModel($row);
+                            $product->galleries[$row['gallery_id']] = $gallery->toArray();
+                        } catch (Throwable $e) {
+                            error_log("[ProductModel ERROR] Failed to map GalleryModel for getOne($id): " . $e->getMessage());
+                        }
+                    }
+
+                    if (!empty($row['attribute_value_id'])) {
+                        try {
+                            $attribute = new AttributeValueModel($row);
+                            $product->attributes[$row['attribute_value_id']] = [
+                                'attributeValue' => $attribute->toArray()
+                            ];
+                        } catch (Throwable $e) {
+                            error_log("[ProductModel ERROR] Failed to map AttributeValueModel for getOne($id): " . $e->getMessage());
+                        }
+                    }
                 }
 
-                if (!empty($row['attribute_value_id'])) {
-                    $attribute = new AttributeValueModel($row);
-                    $product->attributes[$row['attribute_value_id']] = [
-                        'attributeValue' => $attribute->toArray()
-                    ];
-                }
+                return $product->toArray();
+            } catch (Throwable $e) {
+                error_log("[ProductModel ERROR] Failed to build product object in getOne($id): " . $e->getMessage());
+                throw new RuntimeException("Unable to map product object.");
             }
-
-            return $product->toArray();
-
         } catch (PDOException $e) {
-            error_log("[ProductModel ERROR] getOne($id) failed: " . $e->getMessage());
-            throw new RuntimeException("Unable to fetch product with ID: $id");
+            error_log("[ProductModel ERROR] DB failure in getOne($id): " . $e->getMessage());
+            throw new RuntimeException("Unable to fetch product from the database.");
+        } catch (Throwable $e) {
+            error_log("[ProductModel ERROR] Unexpected error in getOne($id): " . $e->getMessage());
+            throw new RuntimeException("Unexpected error occurred while fetching product.");
         }
     }
 
