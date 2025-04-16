@@ -31,14 +31,22 @@ class ProductModel extends DataModel
 
     public function getAll(): array
     {
+        error_log("[ProductModel] getAll() called");
+
         try {
             $this->queryBuilder->clearSQL();
+            error_log("[ProductModel] Cleared query builder");
+
             $this->addToQuery($this->queryBuilder);
             GalleryModel::addToQuery($this->queryBuilder);
             PriceModel::addToQuery($this->queryBuilder);
             AttributeValueModel::addToQuery($this->queryBuilder);
+
             $this->queryBuilder->toSQL();
+            error_log("[ProductModel] Final SQL: " . $this->queryBuilder->sql);
+
             $results = $this->queryBuilder->runSQL();
+            error_log("[ProductModel] Retrieved " . count($results) . " rows");
 
             $products = [];
 
@@ -68,23 +76,30 @@ class ProductModel extends DataModel
             }
 
             return $products;
+
         } catch (PDOException $e) {
-            error_log("[DB ERROR] Failed to fetch products: " . $e->getMessage());
-            throw new RuntimeException("An error occurred while fetching products.");
+            error_log("[ProductModel ERROR] getAll failed: " . $e->getMessage());
+            throw new RuntimeException("Unable to fetch products.");
         }
     }
 
     public function getOne($id)
     {
+        error_log("[ProductModel] getOne() called with ID: $id");
+
         try {
             $this->queryBuilder->clearSQL();
             $this->addToQuery($this->queryBuilder);
             GalleryModel::addToQuery($this->queryBuilder);
             PriceModel::addToQuery($this->queryBuilder);
             AttributeValueModel::addToQuery($this->queryBuilder);
+
             $this->queryBuilder->addWhere(condition: "p.id = '$id'");
             $this->queryBuilder->toSQL();
+            error_log("[ProductModel] Final SQL for getOne: " . $this->queryBuilder->sql);
+
             $results = $this->queryBuilder->runSQL();
+            error_log("[ProductModel] getOne() found " . count($results) . " matching rows");
 
             if (empty($results)) {
                 return null;
@@ -110,9 +125,10 @@ class ProductModel extends DataModel
             }
 
             return $product->toArray();
+
         } catch (PDOException $e) {
-            error_log("[DB ERROR] Failed to fetch product ($id): " . $e->getMessage());
-            throw new RuntimeException("An error occurred while fetching the product.");
+            error_log("[ProductModel ERROR] getOne($id) failed: " . $e->getMessage());
+            throw new RuntimeException("Unable to fetch product with ID: $id");
         }
     }
 
