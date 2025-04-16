@@ -46,14 +46,23 @@ class GraphQL
 
             // Define GraphQL Query Type
             error_log("[DEBUG] Defining Query type");
-            $queryType = new ObjectType([
+            $queryType = $queryType = new ObjectType([
                 'name' => 'Query',
                 'fields' => [
                     'products' => [
                         'type' => Type::listOf($productType),
                         'resolve' => function () {
-                            error_log("[DEBUG] Resolving 'products'");
-                            return (new ProductModel())->getAll();
+                            error_log("[DEBUG] Resolver called for 'products'");
+                            try {
+                                $model = new ProductModel();
+                                error_log("[DEBUG] ProductModel instantiated in 'products' resolver");
+                                $result = $model->getAll();
+                                error_log("[DEBUG] ProductModel::getAll() returned successfully");
+                                return $result;
+                            } catch (Throwable $e) {
+                                error_log("[ERROR] ProductModel::getAll() failed: " . $e->getMessage());
+                                throw $e;
+                            }
                         },
                     ],
                     'product' => [
@@ -62,15 +71,33 @@ class GraphQL
                             'id' => Type::nonNull(Type::string()),
                         ],
                         'resolve' => function ($root, array $args) {
-                            error_log("[DEBUG] Resolving 'product' with ID: " . $args['id']);
-                            return (new ProductModel())->getOne($args['id']);
+                            error_log("[DEBUG] Resolver called for 'product' with ID: " . $args['id']);
+                            try {
+                                $model = new ProductModel();
+                                error_log("[DEBUG] ProductModel instantiated in 'product' resolver");
+                                $result = $model->getOne($args['id']);
+                                error_log("[DEBUG] ProductModel::getOne() returned successfully");
+                                return $result;
+                            } catch (Throwable $e) {
+                                error_log("[ERROR] ProductModel::getOne() failed: " . $e->getMessage());
+                                throw $e;
+                            }
                         },
                     ],
                     'categories' => [
                         'type' => Type::listOf($categoryType),
                         'resolve' => function (): array {
-                            error_log("[DEBUG] Resolving 'categories'");
-                            return (new CategoryModel())->getAll();
+                            error_log("[DEBUG] Resolver called for 'categories'");
+                            try {
+                                $model = new CategoryModel();
+                                error_log("[DEBUG] CategoryModel instantiated in 'categories' resolver");
+                                $result = $model->getAll();
+                                error_log("[DEBUG] CategoryModel::getAll() returned successfully");
+                                return $result;
+                            } catch (Throwable $e) {
+                                error_log("[ERROR] CategoryModel::getAll() failed: " . $e->getMessage());
+                                throw $e;
+                            }
                         },
                     ],
                 ],
