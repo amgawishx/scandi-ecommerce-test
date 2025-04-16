@@ -27,10 +27,10 @@ services:
     depends_on:
       - mysql
     environment:
-      DB_HOST: ${DBHOST}
-      DB_NAME: ${DBNAME}
-      DB_USER: ${DBUSER}
-      DB_PASSWORD: ${DBPASSWORD}
+      DBHOST: ${DBHOST}
+      DBNAME: ${DBNAME}
+      DBUSER: ${DBUSER}
+      DBPASSWORD: ${DBPASSWORD}
 
 
   frontend:
@@ -44,6 +44,7 @@ services:
       - "80:80"
     environment:
       - HOST=0.0.0.0
+      - DBHOST=${DBHOST}
 
 volumes:
   mysql_data:
