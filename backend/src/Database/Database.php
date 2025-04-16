@@ -6,10 +6,10 @@ use PDO;
 
 class Database
 {
-    private $DBHOST = "localhost:3306";
-    private $DBNAME = "data";
-    private $DBUSER = "root";
-    private $DBPASSWORD = "";
+    private $DBHOST = getenv("DBHOST");
+    private $DBNAME = getenv("DBNAME");
+    private $DBUSER = getenv("DBUSER");
+    private $DBPASSWORD = getenv("DBPASSWORD");
     private $dbc;
     private function connect()
     {
