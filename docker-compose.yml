@@ -45,6 +45,7 @@ services:
     environment:
       - HOST=0.0.0.0
       - DBHOST=${DBHOST}
+      - BACKEND=app-php
 
 volumes:
   mysql_data:
