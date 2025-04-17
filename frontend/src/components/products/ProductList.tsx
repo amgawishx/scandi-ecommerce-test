@@ -2,31 +2,8 @@ import React from "react";
 import { useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import { GET_PRODUCTS } from "../../graphql/queries";
-import { CartItem, ProductAttribute } from "./types";
+import { CartItem, Product } from "./types";
 import { FaShoppingCart } from "react-icons/fa";
-
-interface Price {
-  id: number;
-  amount: number;
-  currencyLabel: string;
-  currencySymbol: string;
-}
-
-interface Gallery {
-  id: number;
-  imageUrl: string;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  inStock: boolean;
-  prices: Price[];
-  galleries: Gallery[];
-  attributes: ProductAttribute[];
-}
 
 interface ProductListProps {
   currentCategory: string;
